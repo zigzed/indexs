@@ -211,6 +211,40 @@ TEST(bigram, segment)
     }
 }
 
+TEST(document, buffer)
+{
+    {
+        idx::document doc;
+
+        const char* t = "I love English.\nDo you I?\n";
+        idx::document::item_list list = doc.parse(t, t + strlen(t));
+        ASSERT_EQ(list.size(), 5);
+        for(size_t i = 0; i < list.size(); ++i) {
+            std::cout << "1: " << list[i].rank << "," << list[i].word << "\n";
+        }
+    }
+    {
+        idx::document doc;
+
+        const char* t = "中文文法分析，二元分析结合四则运算";
+        idx::document::item_list list = doc.parse(t, t + strlen(t));
+        ASSERT_EQ(list.size(), 13);
+        for(size_t i = 0; i < list.size(); ++i) {
+            std::cout << "2: " << list[i].rank << "," << list[i].word << "\n";
+        }
+    }
+    {
+        idx::document doc;
+
+        const char* t = "中文和english文法,分析，who care about:anything? 二元分析结合四则运算";
+        idx::document::item_list list = doc.parse(t, t + strlen(t));
+        ASSERT_EQ(list.size(), 17);
+        for(size_t i = 0; i < list.size(); ++i) {
+            std::cout << "3: " << list[i].rank << "," << list[i].word << "\n";
+        }
+    }
+}
+
 int main(int argc, char* argv[])
 {
     ::testing::InitGoogleTest(&argc, argv);

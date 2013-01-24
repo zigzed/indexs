@@ -4,6 +4,9 @@
 #include <ctype.h>
 #include <cassert>
 #include <set>
+#include <map>
+#include <algorithm>
+#include <fstream>
 
 namespace idx {
 
@@ -63,7 +66,8 @@ namespace idx {
         "》", " ", ",", "\\", "/", "~", "`", "!", "@",
         "#", "$", "%", "^", "&", "*", "(", ")", "-",
         "+", "=", "{", "}", "[", "]", ":", ";", "\"",
-        "\'", "<", ">", ",", ".", "?"
+        "\'", "<", ">", ",", ".", "?", "\r", "\n",
+        "\t"
     };
 
     static int is_stop_words(const char* begin, const char* end)
@@ -85,10 +89,27 @@ namespace idx {
     }
 
     //-------------------------------------------------------------------------/
+    static const char* ascii_stop_words = "~`!@#$%^&*()-+={[]}:;|\\\'\"<>,.?/\0";
+
+    static bool is_space(char c)
+    {
+        if(isspace(c)) {
+            return true;
+        }
+        const char* ptr = ascii_stop_words;
+        while(*ptr) {
+            if(c == *ptr) {
+                return true;
+            }
+            ptr++;
+        }
+        return false;
+    }
+
     static int get_line_ascii(const char* begin, const char* end)
     {
         const char* ptr = begin;
-        while(ptr < end && isascii(*ptr) && !isdigit(*ptr) && !isspace(*ptr)) {
+        while(ptr < end && isascii(*ptr) && !isdigit(*ptr) && !is_space(*ptr)) {
             ptr++;
         }
         return ptr - begin;
@@ -106,7 +127,7 @@ namespace idx {
     static int get_line_space(const char* begin, const char* end)
     {
         const char* ptr = begin;
-        while(ptr < end && isspace(*ptr)) {
+        while(ptr < end && is_space(*ptr)) {
             ptr++;
         }
         return ptr - begin;
@@ -122,9 +143,6 @@ namespace idx {
             }
             ptr += len;
         }
-//        if(ptr == begin) {
-//            return 1;
-//        }
         return ptr - begin;
     }
 
@@ -178,7 +196,7 @@ namespace idx {
         if(isdigit(*ptr_)) {
             return DIGIT;
         }
-        if(isspace(*ptr_)) {
+        if(is_space(*ptr_)) {
             return SPACE;
         }
         if(is_stop_words(ptr_, end_)) {
@@ -259,6 +277,24 @@ namespace idx {
         return result;
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    bool document::item::operator <(const document::item& rhs) const
+    {
+        if(word < rhs.word) {
+            return true;
+        }
+        if(word > rhs.word) {
+            return false;
+        }
+        if(rank < rhs.rank) {
+            return true;
+        }
+        if(rank > rhs.rank) {
+            return false;
+        }
+        return false;
+    }
+
     document::document(const char *file)
         : file_(file)
     {
@@ -266,8 +302,71 @@ namespace idx {
 
     document::item_list document::parse()
     {
+        std::ifstream ifs(file_.c_str());
+        if(!ifs.is_open()) {
+            return item_list();
+        }
+
+        std::string   buf;
+        while(std::getline(ifs, buf)) {
+            parse(rank_, buf.data(), buf.data() + buf.size());
+        }
+
+        document::item_list list;
+        list.reserve(rank_.size());
+        for(std::map<std::string, std::size_t >::iterator it = rank_.begin();
+            it != rank_.end(); ++it) {
+            document::item i;
+            i.word = it->first;
+            i.rank = it->second;
+            list.push_back(i);
+        }
+        return list;
     }
 
+    document::item_list document::parse(const char *begin, const char *end) const
+    {
+        std::map<std::string, std::size_t > items;
+
+        parse(items, begin, end);
+
+        document::item_list list;
+        list.reserve(items.size());
+        for(std::map<std::string, std::size_t >::iterator it = items.begin();
+            it != items.end(); ++it) {
+            document::item i;
+            i.word = it->first;
+            i.rank = it->second;
+            list.push_back(i);
+        }
+        return list;
+    }
+
+    void document::parse(WordRank &items, const char *begin, const char *end) const
+    {
+        const char* ptr = begin;
+        const char* beg = begin;
+        while(ptr <= end) {
+            if(*ptr == '\n' || ptr == end) {
+                bigram          b(beg, ptr);
+                bigram::word    w = b.get_word();
+                while(w.begin < ptr - 1) {
+                    std::string key(w.begin, w.end);
+                    std::transform(key.begin(), key.end(), key.begin(), ::tolower);
+                    std::map<std::string, std::size_t >::iterator it = items.find(key);
+                    if(it != items.end()) {
+                        it->second++;
+                    }
+                    else {
+                        items.insert(std::make_pair(key, 1));
+                    }
+                    w = b.get_word();
+                }
+                beg = ptr + 1;
+            }
+            ptr++;
+        }
+    }
 
 
 }

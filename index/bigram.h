@@ -2,8 +2,9 @@
  */
 #ifndef IDX_BIGRAM_H
 #define IDX_BIGRAM_H
-#include <list>
+#include <vector>
 #include <string>
+#include <map>
 #include "common/config.h"
 
 namespace idx {
@@ -47,15 +48,22 @@ namespace idx {
     public:
         struct item {
             std::string word;
-            uint32_t    rank;
+            std::size_t rank;
+            bool operator< (const item& rhs) const;
         };
-        typedef std::list<item >    item_list;
+        typedef std::vector<item >    item_list;
 
+        document() {}
         document(const char* file);
-        document(const char* buffer, const char* end);
         item_list parse();
+        item_list parse(const char* begin, const char* end) const;
     private:
+        typedef std::map<std::string, size_t >  WordRank;
+
+        void parse(WordRank& words, const char* begin, const char* end) const;
+
         std::string file_;
+        WordRank    rank_;
     };
 
 }
