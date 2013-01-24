@@ -177,6 +177,36 @@ TEST(bigram, segment)
     }
     {
         int         i = 0;
+        const char* t = "’丁春秋";
+        const char* e[] = { "丁春", "春秋" };
+        idx::bigram b(t, t + strlen(t));
+        idx::bigram::word w = b.get_word();
+        while(w.begin < t + strlen(t)) {
+            std::string temp(w.begin, w.end);
+            ASSERT_STREQ(temp.c_str(), e[i++]);
+
+            w = b.get_word();
+        }
+        ASSERT_EQ(i, 2);
+    }
+    {
+        {
+            int         i = 0;
+            const char* t = "“丁春秋";
+            const char* e[] = { "丁春", "春秋" };
+            idx::bigram b(t, t + strlen(t));
+            idx::bigram::word w = b.get_word();
+            while(w.begin < t + strlen(t)) {
+                std::string temp(w.begin, w.end);
+                ASSERT_STREQ(temp.c_str(), e[i++]);
+
+                w = b.get_word();
+            }
+            ASSERT_EQ(i, 2);
+        }
+    }
+    {
+        int         i = 0;
         const char* t = "请尝试解析用户面彩信业务，初步需要字段如下所示。数据可用你手头已有的数据，验证数据正在协调中最近有望拿到。谢谢。";
         idx::bigram b(t, t + strlen(t));
         idx::bigram::word w = b.get_word();
@@ -249,7 +279,7 @@ TEST(document, buffer)
 
 TEST(document, file)
 {
-    idx::document doc("test.txt");
+    idx::document doc("doc/test.txt");
     idx::document::item_list list = doc.parse();
     for(size_t i = 0; i < list.size(); ++i) {
         std::cout << std::setw(6) << i << ","
