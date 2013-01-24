@@ -10,6 +10,7 @@ if(WIN32)
 endif(WIN32)
 
 include(base.cmake)
+add_subdirectory(3rd)
 add_subdirectory(index)
 add_subdirectory(query)
 

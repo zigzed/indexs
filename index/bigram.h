@@ -9,6 +9,7 @@
 
 namespace idx {
 
+    /** 按照语言进行过滤，分别处理ASCII, CJK，数字，空格，符号等 */
     class filter {
     public:
         enum category { ASCII, CJK, SPACE, DIGIT, SYM };
@@ -26,6 +27,7 @@ namespace idx {
         const char* ptr_;
     };
 
+    /** 对中文进行二元拆分 */
     class bigram {
     public:
         struct word {
@@ -44,6 +46,7 @@ namespace idx {
         const char* ptr_;
     };
 
+    /** 将一个文档按照二元拆分 */
     class document {
     public:
         struct item {

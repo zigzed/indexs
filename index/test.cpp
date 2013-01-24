@@ -3,6 +3,8 @@
 #include "common/config.h"
 #include "common/gtest/gtest.h"
 #include "bigram.h"
+#include "index.h"
+#include <iomanip>
 
 TEST(bigram, utf8len)
 {
@@ -243,6 +245,23 @@ TEST(document, buffer)
             std::cout << "3: " << list[i].rank << "," << list[i].word << "\n";
         }
     }
+}
+
+TEST(document, file)
+{
+    idx::document doc("test.txt");
+    idx::document::item_list list = doc.parse();
+    for(size_t i = 0; i < list.size(); ++i) {
+        std::cout << std::setw(6) << i << ","
+                  << std::setw(6) <<  list[i].rank << ","
+                  << std::setw(12) << list[i].word << "\n";
+    }
+}
+
+TEST(indexer, file)
+{
+    idx::indexer index;
+    index.index("db/test.db", "doc");
 }
 
 int main(int argc, char* argv[])
