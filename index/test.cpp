@@ -260,8 +260,8 @@ TEST(document, file)
 
 TEST(indexer, file)
 {
-    idx::indexer index;
-    index.index("db/test.db", "doc");
+    idx::indexer index("db/test.kct");
+    index.index("doc");
 }
 
 int main(int argc, char* argv[])

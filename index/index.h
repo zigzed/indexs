@@ -2,20 +2,23 @@
  */
 #ifndef IDX_INDEX_H
 #define IDX_INDEX_H
-#include "common/sql/sqlite++.h"
 #include <vector>
+#include "kcdbext.h"
+#include "kcdb.h"
 
 namespace idx {
 
     class indexer {
     public:
-        indexer();
-        bool index(const char* db, const char* path);
+        indexer(const char* db);
+        ~indexer();
+        bool index(const char* path);
     private:
-        void create_table(cxx::sqlite3_connection* db);
-        void indexing_doc(cxx::sqlite3_connection* db, int id, const char* file);
-        void update_index(cxx::sqlite3_connection* db, int id, const char* key, int rank);
-        int  get_doc_id  (cxx::sqlite3_connection* db, const char* file);
+        int  get_files_id(const char* file);
+        void indexing_doc(int id, const char* file);
+        void update_index(int id, const char* key, int rank);
+
+        kyotocabinet::IndexDB*    idb_;
     };
 
 }
