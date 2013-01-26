@@ -11,4 +11,5 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
 include_directories(${COMMON_PATH})
+include_directories(${INDEXS_PATH})
 link_directories(${COMMON_PATH}/lib/${CMAKE_BUILD_TYPE})
