@@ -16,8 +16,9 @@ namespace idx {
             std::string key;    /// matched keyword
         };
 
-        record(const char* keyword) {}
-        void    add_doc(const char* file, int rank) {}
+        record() {}
+        void    add_key(const char* key, int rank) {}
+        void    add_doc(const char* doc, int rank) {}
         brief   matched() { return brief(); }
     private:
     };

@@ -37,27 +37,29 @@ namespace idx {
         idx::document::item_list item = doc.parse(keyword, keyword + strlen(keyword));
 
         find_result result;
+        record      rec;
 
         for(size_t i = 0; i < item.size(); ++i) {
             find_result::result_set tmp;
-            db_->get_index(item[i].word.c_str(), tmp);
-            if(i == 0) {
-                result.add_doc(tmp);
-            }
-            else {
-                result.and_doc(tmp);
+            if(db_->get_index(item[i].word.c_str(), tmp)) {
+                rec.add_key(item[i].word, item[i].rank);
+                if(i == 0) {
+                    result.add_doc(tmp);
+                }
+                else {
+                    result.and_doc(tmp);
+                }
             }
         }
 
         const find_result::result_set& files = result.get_doc();
-        record r(keyword);
         for(size_t i = 0; i < files.size(); ++i) {
             std::string name = db_->id_to_doc(files[i].file);
             if(!name.empty()) {
-                r.add_doc(name.c_str(), files[i].rank);
+                rec.add_doc(name.c_str(), files[i].rank);
             }
         }
-        return r;
+        return rec;
     }
 
 
